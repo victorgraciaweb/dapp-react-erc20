@@ -2,12 +2,9 @@ import React, { Component } from 'react';
 import smart_contract from '../abis/loteria.json'
 import Web3 from 'web3';
 import Swal from 'sweetalert2';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
 
 import Navigation from './Navbar';
 import MyCarousel from './Carousel';
-import { Container } from 'react-bootstrap';
 
 class Ganador extends Component {
 
@@ -66,6 +63,70 @@ class Ganador extends Component {
         }
     }
 
+    _generarGanador = async () => {
+        try {
+            console.log("Generacion del ganador en ejecucion...")
+            await this.state.contract.methods.generarGanador().send({
+                from: this.state.account
+            })
+            await this.mostrarAlerta(
+                'success',
+                '¡Ganador generado correctamente!',
+                'Revisa el ganador del sorteo',
+            )
+        } catch (err) {
+            this.setState({ errorMessage: err })
+        } finally {
+            this.setState({ loading: false })
+        }
+    }
+
+    _ganador = async () => {
+        try {
+            console.log("Visualizacion del ganador en ejecucion...")
+            const winner = await this.state.contract.methods.ganador().call()
+
+            if(winner !== '0x0000000000000000000000000000000000000000'){
+                await this.mostrarAlerta(
+                    'info',
+                    'El ganador de la Lotería es:',
+                    `${winner}`,
+                )
+            }else {
+                await this.mostrarAlerta(
+                    'error',
+                    'Error',
+                    `El sorteo aun no ha sido realizado`,
+                )
+            }
+
+        } catch (err) {
+            this.setState({ errorMessage: err })
+            await this.mostrarAlerta(
+                'error',
+                'Error',
+                'Error, inténtalo de nuevo',
+            )
+        } finally {
+            this.setState({ loading: false })
+        }
+    }
+
+    mostrarAlerta = async (icon, title, text) => {
+        Swal.fire({
+            icon: icon,
+            title: title,
+            width: 800,
+            padding: '3em',
+            text: text,
+            backdrop: `
+            rgba(15, 238, 168, 0.2)
+            left top
+            no-repeat
+          `
+        })
+    }
+
     render() {
         return (
             <div>
@@ -75,7 +136,24 @@ class Ganador extends Component {
                     <div className="row">
                         <main role="main" className="col-lg-12 d-flex text-center">
                             <div className="content mr-auto ml-auto">
-
+                                <h1> Generación de un ganador en la Lotería</h1>
+                                <form onSubmit={(event) => {
+                                    event.preventDefault()
+                                    this._generarGanador()
+                                }}>
+                                    <input type="submit"
+                                           className="bbtn btn-block btn-info btn-sm"
+                                           value="GENERAR GANADOR" />
+                                </form>
+                                &nbsp;
+                                <form onSubmit={(event) => {
+                                    event.preventDefault()
+                                    this._ganador()
+                                }}>
+                                    <input type="submit"
+                                           className="bbtn btn-block btn-success btn-sm"
+                                           value="VISUALIZAR GANADOR" />
+                                </form>
                             </div>
                         </main>
                     </div>
