@@ -66,6 +66,88 @@ class Loteria extends Component {
         }
     }
 
+    _compraBoletos = async (_numBoletos) => {
+        try {
+            console.log("Compra de boletos de loteria en ejecucion...")
+            await this.state.contract.methods.compraBoleto(_numBoletos).send({
+                from: this.state.account
+            })
+            await this.mostrarAlerta(
+                'success',
+                'Compra de boletos completada, ¡mucha suerte!',
+                `Has comprado ${_numBoletos} boletos`,
+            )
+        } catch (err) {
+            this.setState({ errorMessage: err })
+            await this.mostrarAlerta(
+                'error',
+                'Error',
+                `Error, comprueba si tienes tokens disponibles para comprar boletos`,
+            )
+        } finally {
+            this.setState({ loading: false })
+        }
+    }
+
+    _precioBoleto = async () => {
+        try {
+            console.log("Precio del boleto en ejecucion...")
+            const _precio = await this.state.contract.methods.precioBoleto().call()
+            await this.mostrarAlerta(
+                'info',
+                `El precio del boleto es de ${_precio} tokens (ERC-20)`,
+                `¡Compra tus boletos y no pierdas esta oportunidad!`,
+            )
+        } catch (err) {
+            this.setState({ errorMessage: err })
+            await this.mostrarAlerta(
+                'error',
+                'Error',
+                'Error, inténtalo de nuevo',
+            )
+        } finally {
+            this.setState({ loading: false })
+        }
+    }
+
+    _tusBoletos = async () => {
+        try {
+            console.log("Visualizacion de tus boletos en ejecucion...")
+            const _boletos = await this.state.contract.methods.tusBoletos(
+                this.state.account
+            ).call()
+            await this.mostrarAlerta(
+                'info',
+                `Tus boletos son:`,
+                `${_boletos}`,
+            )
+        } catch (err) {
+            this.setState({ errorMessage: err })
+            await this.mostrarAlerta(
+                'error',
+                'Error',
+                'Error, inténtalo de nuevo',
+            )
+        } finally {
+            this.setState({ loading: false })
+        }
+    }
+
+    mostrarAlerta = async (icon, title, text) => {
+        Swal.fire({
+            icon: icon,
+            title: title,
+            width: 800,
+            padding: '3em',
+            text: text,
+            backdrop: `
+            rgba(15, 238, 168, 0.2)
+            left top
+            no-repeat
+          `
+        })
+    }
+
     render() {
         return (
             <div>
@@ -75,7 +157,49 @@ class Loteria extends Component {
                     <div className="row">
                         <main role="main" className="col-lg-12 d-flex text-center">
                             <div className="content mr-auto ml-auto">
+                                <h1> Gestión de la Lotería con ERC-20 y ERC-721 </h1>
+                                <h3> Compra de boletos </h3>
+                                <form onSubmit={(event) => {
+                                    event.preventDefault()
+                                    const cantidad = this._numBoletos.value
+                                    this._compraBoletos(cantidad)
+                                }} >
+                                    <input type="number"
+                                           className="form-control mb-1"
+                                           placeholder="Cantidad de boletos a comprar"
+                                           ref={(input) => this._numBoletos = input} />
 
+                                    <input type="submit"
+                                           className="bbtn btn-block btn-primary btn-sm"
+                                           value="COMPRAR BOLETOS" />
+                                </form>
+                                &nbsp;
+                                <Container>
+                                    <Row>
+                                        <Col>
+                                            <h3> Precio Boleto </h3>
+                                            <form onSubmit={(event) => {
+                                                event.preventDefault()
+                                                this._precioBoleto()
+                                            }}>
+                                                <input type="submit"
+                                                       className="bbtn btn-block btn-danger btn-sm"
+                                                       value="PRECIO BOLETO" />
+                                            </form>
+                                        </Col>
+                                        <Col>
+                                            <h3> Tus Boletos </h3>
+                                            <form onSubmit={(event) => {
+                                                event.preventDefault()
+                                                this._tusBoletos()
+                                            }}>
+                                                <input type="submit"
+                                                       className="bbtn btn-block btn-success btn-sm"
+                                                       value="TUS BOLETOS" />
+                                            </form>
+                                        </Col>
+                                    </Row>
+                                </Container>
                             </div>
                         </main>
                     </div>
