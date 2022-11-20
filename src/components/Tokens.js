@@ -72,7 +72,7 @@ class Tokens extends Component {
       const _balance = await this.state.contract.methods.balanceTokens(this.state.account).call()
       await this.mostrarAlerta(
           'info',
-          'Balance de tokens del usuario:',
+          'Balance de tokens de tu cuenta:',
           `${_balance} tokens`,
       )
     } catch (err) {
