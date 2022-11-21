@@ -64,7 +64,7 @@ contract loteria is ERC20, Ownable {
 
     // Compra de tokens ERC-20
     function compraTokens(uint256 _numTokens) public payable {
-        // Registro del ususario
+        // Registro del usuario
         if(usuario_contract[msg.sender] == address(0)){
             registrar();
         }
