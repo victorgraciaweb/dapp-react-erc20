@@ -1,4 +1,5 @@
 const Web3 = require('web3');
+const {arrayContainsArray} = require("truffle/build/671.bundled");
 
 const loteria = artifacts.require("loteria");
 
@@ -91,5 +92,49 @@ contract("loteria", accounts => {
 
         let _balance_tokens_smart_contract_after = await instance.balanceTokensSC();
         assert.equal(_balance_tokens_smart_contract_after, balance_tokens_smart_contract);
+    });
+
+    it("Debería comprar que se compran boletos y se obtienen los boletos del usuario ya comprados", async () => {
+        let instance = await loteria.deployed();
+
+        let cuenta_usuario = accounts[4]
+
+        let tokens_usuario_compra = 20
+
+        let boletos_usuario_compra = 4
+
+        await instance.compraTokens(tokens_usuario_compra, {
+            from: cuenta_usuario,
+            value: Web3.utils.toWei(tokens_usuario_compra.toString(),"ether")
+        });
+
+        let _balance_tokens_usuario_before = await instance.balanceTokens(cuenta_usuario);
+        assert.equal(_balance_tokens_usuario_before, tokens_usuario_compra);
+
+        let _balance_boletos_usuario_before = await instance.tusBoletos(cuenta_usuario);
+        assert.equal(_balance_boletos_usuario_before.length, 0);
+
+        await instance.compraBoleto(boletos_usuario_compra, {
+            from: cuenta_usuario,
+        });
+
+        let _balance_boletos_usuario_after = await instance.tusBoletos(cuenta_usuario);
+        assert.equal(_balance_boletos_usuario_after.length, boletos_usuario_compra);
+    });
+
+    it("Generación de ganador", async () => {
+        let instance = await loteria.deployed();
+
+        let ganador_before = await instance.ganador();
+        assert.notEqual(true, accounts.includes(ganador_before));
+
+        const owner = await instance.owner.call()
+        await instance.generarGanador({
+            from: owner,
+        });
+
+        let ganador_after = await instance.ganador();
+
+        assert.equal(true, accounts.includes(ganador_after));
     });
 })
